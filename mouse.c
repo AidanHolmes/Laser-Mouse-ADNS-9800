@@ -45,6 +45,10 @@
 // - read and write of XY resolution calibration value to from/to built-in EEPROM
 // - mouse buttons debouncing in calibration mode
 
+// Updates by Aidan Holmes
+// Fixes: quadrature fix to pulse X1/X2 and Y1/Y2 (config correction). Control debug serial output with macros
+// Date: 17/05/25
+
 //=============================================================================
 // FUSES
 //=============================================================================
@@ -77,6 +81,12 @@ bool g_bAdnsEnabled = false;
 uint8_t g_u8Resolution = 0;
 bool g_bCalibrationMode = false;
 uint8_t g_u8GestureMode = 0; // a mode of a ("Yes" or "No") gesture drawn by cursor
+
+#ifdef _DEBUG
+#define D(x) x
+#else
+#define D(x) 
+#endif
 
 //=============================================================================
 void delay_us(int16_t i16MicrosecondsP) // "i16MicrosecondsP" must be >= 10
@@ -117,24 +127,24 @@ static inline void ADNS_set_resolution(void)
     g_u8Resolution = EE_read_byte(EE_CALIB_RESOLUTION_ADDR);
     if ((g_u8Resolution < 0x01) || (g_u8Resolution > 0xA4))
     {
-        UART_puts("Invalid value in EEPROM 0x");
-        UART_putb(g_u8Resolution);
-        UART_puts(". saving default value 0x44\n");
+        D(UART_puts("Invalid value in EEPROM 0x"));
+        D(UART_putb(g_u8Resolution));
+        D(UART_puts(". saving default value 0x44\n"));
         g_u8Resolution = 0x44; // setting default resolution
         if (!EE_write_byte(EE_CALIB_RESOLUTION_ADDR, g_u8Resolution))
         {
             UART_puts("Can't store calibration value in EEPROM.\n");
         }
     }
-    UART_puts("Setting XY resolution: ");
-    UART_putb(g_u8Resolution);
-    UART_puts("\n");
+    D(UART_puts("Setting XY resolution: "));
+    D(UART_putb(g_u8Resolution));
+    D(UART_puts("\n"));
     ADNS_write_reg(REG_Configuration_I, g_u8Resolution);
     
     uint8_t u8Stored = ADNS_read_reg(REG_Configuration_I);
-    UART_puts("XY resolution read from ADNS: 0x");
-    UART_putb(u8Stored);
-    UART_puts("\n");
+    D(UART_puts("XY resolution read from ADNS: 0x"));
+    D(UART_putb(u8Stored));
+    D(UART_puts("\n"));
 }
 
 //=============================================================================
@@ -151,7 +161,7 @@ static inline void ADNS_init(void)
     (void)ADNS_read_reg(REG_Delta_Y_L);
     (void)ADNS_read_reg(REG_Delta_Y_H);
     // upload the firmware
-    UART_puts("ADNS9800 Uploading firmware...\n");
+    D(UART_puts("ADNS9800 Uploading firmware...\n"));
     ADNS_upload_firmware();
     
     // check firmware correctness
@@ -176,26 +186,26 @@ static inline void ADNS_init(void)
                 uint8_t u8LaserDriveMode = ADNS_read_reg(REG_LASER_CTRL0);
                 ADNS_write_reg(REG_LASER_CTRL0, u8LaserDriveMode & 0xf0 );
                 ADNS_set_resolution();
-                UART_puts("Optical Chip Initialized\n");
+                D(UART_puts("Optical Chip Initialized\n"));
             }
             else
             {
-                UART_puts("SROM CRC error:0x");
-                UART_putb(u8CrcHigh);
-                UART_putb(u8CrcLow);
-                UART_puts("\n");
+                D(UART_puts("SROM CRC error:0x"));
+                D(UART_putb(u8CrcHigh));
+                D(UART_putb(u8CrcLow));
+                D(UART_puts("\n"));
             }
         }
         else
         {
-            UART_puts("Product ID test failed\n");
+            D(UART_puts("Product ID test failed\n"));
         }
     }
     else
     {
-        UART_puts("Invalid Product ID:");
-        UART_putb(u8ProductId);
-        UART_puts("\n");
+        D(UART_puts("Invalid Product ID:"));
+        D(UART_putb(u8ProductId));
+        D(UART_puts("\n"));
     }
     if (false == g_bAdnsEnabled) g_bCalibrationMode = false; // disable calibration mode if ADNS chip is not initialized
 }
@@ -204,10 +214,10 @@ static inline void ADNS_init(void)
 void ADNS_uart_print_register(uint8_t u8RegIdP, char * szRegNameP)
 {
     uint8_t u8RegValue = ADNS_read_reg(u8RegIdP);
-    UART_puts(szRegNameP);
-    UART_puts(": 0x");
-    UART_putb(u8RegValue);
-    UART_puts("\n");
+    D(UART_puts(szRegNameP));
+    D(UART_puts(": 0x"));
+    D(UART_putb(u8RegValue));
+    D(UART_puts("\n"));
 }
 
 //=============================================================================
@@ -245,13 +255,13 @@ static inline void setup(void)
     TRISC=0x00; //  Set all of PORTC as outputs. TX and RX must be set as outputs first
 
     UART_init();
-    UART_puts("Amiga Laser Mouse driver 2.0 by gps79\n");
+    D(UART_puts("Amiga Laser Mouse driver 2.0 by gps79\n"));
     
     // Enable demo mode if both buttons are pressed during startup
     if ((LOW == LMB_IN) && (LOW == RMB_IN))
     {
         g_bCalibrationMode = true;
-        UART_puts("Calibration ON\n");
+        D(UART_puts("Calibration ON\n"))
     }    
 
     // Set V, QV, H, HQ ports as outputs
@@ -262,7 +272,7 @@ static inline void setup(void)
 
     SPI_init();
     ADNS_init();
-    ADNS_dispRegisters();
+    D(ADNS_dispRegisters());
 }
 
 //=============================================================================
@@ -288,9 +298,9 @@ static inline void playDemo(int16_t *pi16DeltaXP, int16_t *pi16DeltaYP)
     {
         u8Step = 0;
         u8Phase = (u8Phase + 1) & 0x07;
-        UART_puts("Demo phase ");
-        UART_putb(u8Phase);
-        UART_puts("\n");
+        D(UART_puts("Demo phase "));
+        D(UART_putb(u8Phase));
+        D(UART_puts("\n"));
     }
 }
 
@@ -341,7 +351,7 @@ static inline void handleMouseButtons(int16_t *pi16DeltaXP, int16_t *pi16DeltaYP
             {
                 if ((LOW == LMB_IN) && (LOW == RMB_IN))
                 {
-                    UART_puts("Calibration OFF\n");
+                    D(UART_puts("Calibration OFF\n"));
                     g_bCalibrationMode = false;
                     g_u8GestureMode = 5;
                 }
@@ -355,20 +365,20 @@ static inline void handleMouseButtons(int16_t *pi16DeltaXP, int16_t *pi16DeltaYP
         }
         if (bApplyNewResolution)
         {
-            UART_puts("New XY Res:");
-            UART_putb(g_u8Resolution);
-            UART_puts("\n");
+            D(UART_puts("New XY Res:"));
+            D(UART_putb(g_u8Resolution));
+            D(UART_puts("\n"));
             ADNS_write_reg(REG_Configuration_I, g_u8Resolution);
             if (!EE_write_byte(EE_CALIB_RESOLUTION_ADDR, g_u8Resolution))
             {
-                UART_puts("Can't store calibration value in EEPROM.\n");
+                D(UART_puts("Can't store calibration value in EEPROM.\n"));
             }
             DELAY_MS(100); // wait 100ms as a primitive buttons debouncing
 
             uint8_t u8Stored = ADNS_read_reg(REG_Configuration_I);
-            UART_puts("XY resolution read from ADNS: 0x");
-            UART_putb(u8Stored);
-            UART_puts("\n");
+            D(UART_puts("XY resolution read from ADNS: 0x"));
+            D(UART_putb(u8Stored));
+            D(UART_puts("\n"));
         }
     }
     else // Normal buttons handling if not in Calibration Mode
@@ -446,21 +456,21 @@ static inline void loop(void)
                 i16DeltaY |= ((uint16_t)ADNS_read_reg(REG_Delta_Y_H) << 8);
 
 #if 0 // Enable for debug purposes only. It will slow down XY movement handling
-                UART_puts("motion=(");
-                UART_putb(i16DeltaX>>8);
-                UART_putb(i16DeltaX&0xff);
-                UART_puts(",");
-                UART_putb(i16DeltaY>>8);
-                UART_putb(i16DeltaY&0xff);
-                UART_puts(")\n");
+                D(UART_puts("motion=("));
+                D(UART_putb(i16DeltaX>>8));
+                D(UART_putb(i16DeltaX&0xff));
+                D(UART_puts(","));
+                D(UART_putb(i16DeltaY>>8));
+                D(UART_putb(i16DeltaY&0xff));
+                D(UART_puts(")\n"));
 #endif
             }
         }
         else
         {
-            UART_puts("Error:motion=");
-            UART_putb(*((uint8_t *)&motion));
-            UART_puts("\n");
+            D(UART_puts("Error:motion="));
+            D(UART_putb(*((uint8_t *)&motion)));
+            D(UART_puts("\n"));
         }
     }
 #ifdef DEMO_MODE

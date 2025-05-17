@@ -33,6 +33,11 @@
 // Author: Grzegorz Pietrusiak
 // Email: gpsspam2@gmail.com
 // 
+// Updated by: Aidan Holmes
+// Date: 17/05/25
+// Changes: switched pins to fix quadrature phasing (was set to left/right and up/down pins which isn't X1/X2 Y1/Y2)
+//          Built for Amiga Laser Mouse V1.2 (19/10/2019) PCB
+
 //=============================================================================
 // Includes
 //=============================================================================
@@ -74,14 +79,14 @@
 //#define IF_CFG if (LOW == PORTBbits.RB5)
 //#define IF_NCFG if (HIGH == PORTBbits.RB5)
 
-#define H (LATCbits.LATC5)
-#define V (LATCbits.LATC4)
-#define HQ (LATCbits.LATC6)
-#define VQ (LATCbits.LATC7)
-#define H_PORT_DIRECTION (TRISCbits.RC5)
+#define H (LATCbits.LATC7)   // Down  - X1
+#define V (LATCbits.LATC4)   // Up    - Y2
+#define HQ (LATCbits.LATC6)  // Right - X2
+#define VQ (LATCbits.LATC5)  // Left  - Y1
+#define H_PORT_DIRECTION (TRISCbits.RC7)
 #define V_PORT_DIRECTION (TRISCbits.RC4)
 #define HQ_PORT_DIRECTION (TRISCbits.RC6)
-#define VQ_PORT_DIRECTION (TRISCbits.RC7)
+#define VQ_PORT_DIRECTION (TRISCbits.RC5)
 
 //=============================================================================
 // EEPROM data layout

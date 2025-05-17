@@ -38,11 +38,12 @@ PROC    = 18f23k22
 HEXFILE = "$(PROJECT_NAME).hex"
 PATHSRC = .
 #-----------------------------------------------------------------------------
-SDCCDIR = "c:\Program Files\SDCC"
-CC = $(SDCCDIR)/bin/sdcc
+#SDCCDIR = "c:\Program Files\SDCC"
+#CC = $(SDCCDIR)/bin/sdcc
+CC = /usr/local/bin/sdcc
 BINEX = d:/tools/binex/BINEX.EXE
 #-----------------------------------------------------------------------------
-SRC = eeprom.c uart.c adns9800.c spi.c
+SRC = eeprom.c adns9800.c uart.c spi.c
 OBJS = $(SRC:.c=.o)
 #-----------------------------------------------------------------------------
 #CRT = 
@@ -81,8 +82,8 @@ $(HEXFILE): $(OBJS) mouse.c $(PATHSRC)/*.h
 	@echo "30000Bh CONFIG6H E0 default"
 	@echo "30000Ch CONFIG7L 03 memory not protected"
 	@echo "30000Dh CONFIG7H 40 default"
-	@sed -i 's/:010006008574/:0E0000000029073C00BF850003C003E0034059/g' $(HEXFILE)
-	@$(BINEX) /V $(HEXFILE) 2>/dev/null |tail -n 4
+#	@sed -i 's/:010006008574/:0E0000000029073C00BF850003C003E0034059/g' $(HEXFILE)
+#	@$(BINEX) /V $(HEXFILE) 2>/dev/null |tail -n 4
 
 %.o: $(PATHSRC)/%.c $(PATHSRC)/*.h
 	$(CC)  $(CFLAGS) -c $<
