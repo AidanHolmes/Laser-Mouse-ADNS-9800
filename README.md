@@ -4,11 +4,20 @@ Project description: based on PIC18f23k22 microcontroller and ADNS-9800 Laser Ga
 
 PCB for the project: https://www.pcbway.com/project/shareproject/Amiga_Laser_Mouse.html
 
+Updated to support V1.2 of the PCB on PCBWay. Reassigned pins to work correctly with board.
+
 # Toolchain:
-SDCC 3.9.0-rc1 https://sourceforge.net/projects/sdcc/files/sdcc-win32/3.9.0/
+This project has been slightly modified for building on Raspberry Pi Debian Linux
+SDCC 4.5.0
+gputils 1.5.2
+Flashed with Pickle 5.01
 
-gputils-1.5.0-1 https://sourceforge.net/projects/gputils/files/gputils/1.5.0/
-  
-Simulator: GNUPIC simulator 0.31.0 https://sourceforge.net/projects/gpsim/files/gpsim/0.31.0/
+The bat files are unmodified and can run simulator and other code. These are unlikely to work with Windows as the makefile has updated.
 
-Flashing tool: MicroBrn v150607 (DIYpack25ep) https://www.ozitronics.com/micropro.html
+# Build
+make clean
+make
+
+builds amiga_mouse.hex in main directory.
+
+Prebuild hex exists in builds directory. Flash this with Pickle using: p16 lvp program amiga_mouse.hex
